@@ -1,5 +1,24 @@
 open Core_kernel
 
+module Seed = struct
+  type t = string
+
+  let create () : t =
+    let c = In_channel.create ~binary:true "/dev/urandom" in
+    let total = 32 in
+    let buf = Bytes.create total in
+    let rec go bytes_read =
+      if bytes_read < total then begin
+        let r = In_channel.input c ~buf ~pos:bytes_read ~len:(total - bytes_read) in
+        go (bytes_read + r)
+      end
+    in
+    go 0;
+    In_channel.close c;
+    Bytes.to_string buf
+
+end
+
 let stream =
   let open Digestif in
   let h = blake2s 32 in

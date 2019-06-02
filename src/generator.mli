@@ -5,7 +5,7 @@ type 'a t
 
 val map : 'a t -> f:('a -> 'b) -> 'b t
 
-val sample : 'a t -> seed:string -> 'a
+val sample : 'a t -> seed:Randomness.Seed.t -> 'a
 
 val bit : bool t
 val int : int -> int t
