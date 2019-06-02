@@ -5,67 +5,51 @@ type 'a t = choose:(unit -> bool) -> 'a
 
 let bit : bool t = fun ~choose -> choose ()
 
-let map (t : 'a t) ~f =
-  fun ~choose -> f (t ~choose)
+let map (t : 'a t) ~f ~choose = f (t ~choose)
 
 let n_bit_int ~n : int t =
-  fun ~choose ->
-    let rec go acc i =
-      if i = n
-      then acc
-      else
-        go
-          ((acc lsl 1) lor (if choose () then 1 else 0))
-          (i + 1)
-    in
-    go 0 0
+ fun ~choose ->
+  let rec go acc i =
+    if i = n then acc
+    else go ((acc lsl 1) lor if choose () then 1 else 0) (i + 1)
+  in
+  go 0 0
 
 let rec int n ~choose =
   let r = n_bit_int ~n:(Int.ceil_log2 n) ~choose in
-  if r < n
-  then r
-  else int n ~choose
-;;
+  if r < n then r else int n ~choose
 
 let digit : Digit.t t = int 10
 
 let alphabetic : Alphabetic.t t =
-  fun ~choose ->
-    Char.of_int_exn
-      (Char.to_int 'a' + int ~choose 26)
+ fun ~choose -> Char.of_int_exn (Char.to_int 'a' + int ~choose 26)
 
 (* Uses n * log n ~= log n! bits of randomness *)
 let shuffle arr ~choose =
   let n = Array.length arr in
   let rec go pos =
     let remaining = n - pos in
-    if remaining > 0 then begin
+    if remaining > 0 then (
       let to_pos = pos + int remaining ~choose in
-      Array.swap arr pos to_pos;
-      go (pos + 1)
-    end
+      Array.swap arr pos to_pos ;
+      go (pos + 1) )
   in
   go 0
 
-let permuted t =
-  fun ~choose ->
-    let a = Array.copy t in
-    shuffle a ~choose;
-    a
+let permuted t ~choose =
+  let a = Array.copy t in
+  shuffle a ~choose ; a
 
 let permutation n : Permutation.t t =
-  fun ~choose ->
-    let a = Array.init n ~f:Fn.id in
-    shuffle a ~choose;
-    a
+ fun ~choose ->
+  let a = Array.init n ~f:Fn.id in
+  shuffle a ~choose ; a
 
 let sample t ~seed = t ~choose:(unstage (Randomness.create ~seed))
 
-let sequence t =
-  fun ~choose ->
-    Sequence.unfold ~init:() ~f:(fun () -> Some (t ~choose, ()))
+let sequence t ~choose =
+  Sequence.unfold ~init:() ~f:(fun () -> Some (t ~choose, ()))
 
-let list ~length t =
-  fun ~choose ->
-    (* List.init initializes the list backwards. *)
-    List.rev (List.init length ~f:(fun _ -> t ~choose))
+let list ~length t ~choose =
+  (* List.init initializes the list backwards. *)
+  List.rev (List.init length ~f:(fun _ -> t ~choose))
