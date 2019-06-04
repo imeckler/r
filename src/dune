@@ -1,5 +1,6 @@
-(executables
-  (names r)
+(executable
+  (name r)
+  (public_name r)
   (libraries
     core
     angstrom

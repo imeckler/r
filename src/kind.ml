@@ -6,6 +6,7 @@ type _ t =
   | Bit : bool t
   | Digit : Digit.t t
   | Alphabetic : Alphabetic.t t
+  | Lat_long : Lat_long.t t
 
 let generator (type a) : a t -> a Generator.t = function
   | Bit ->
@@ -16,6 +17,13 @@ let generator (type a) : a t -> a Generator.t = function
       Generator.alphabetic
   | Should_I ->
       Generator.(map bit ~f:(fun b -> if b then `Yes else `No))
+  | Lat_long ->
+      Generator.(
+        map
+          (tuple2 (dup2 float) (dup2 bit))
+          ~f:(fun ((x, y), (n, e)) ->
+            { Lat_long.latitude= (90. *. x, if n then `N else `S)
+            ; longitude= (180. *. y, if e then `E else `W) } ))
 
 let to_string (type a) : a t -> a -> string = function
   | Bit ->
@@ -26,5 +34,11 @@ let to_string (type a) : a t -> a -> string = function
       Char.to_string
   | Should_I -> (
       function `Yes -> "yes" | `No -> "no" )
+  | Lat_long ->
+      fun {latitude= lat, lat_dir; longitude= long, long_dir} ->
+        sprintf "%f° %c %f° %c" lat
+          (match lat_dir with `N -> 'N' | `S -> 'S')
+          long
+          (match long_dir with `E -> 'E' | `W -> 'W')
 
 type e = T : _ t -> e

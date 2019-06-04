@@ -53,3 +53,16 @@ let sequence t ~choose =
 let list ~length t ~choose =
   (* List.init initializes the list backwards. *)
   List.rev (List.init length ~f:(fun _ -> t ~choose))
+
+let tuple2 t1 t2 ~choose = (t1 ~choose, t2 ~choose)
+
+let tuple3 t1 t2 t3 ~choose = (t1 ~choose, t2 ~choose, t3 ~choose)
+
+let dup2 t = tuple2 t t
+
+let dup3 t = tuple3 t t t
+
+let float ~choose =
+  let bits = 10 in
+  let denom = Float.of_int (1 lsl bits) in
+  Float.of_int (n_bit_int ~n:bits ~choose) /. denom
