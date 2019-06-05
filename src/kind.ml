@@ -7,6 +7,21 @@ type _ t =
   | Digit : Digit.t t
   | Alphabetic : Alphabetic.t t
   | Lat_long : Lat_long.t t
+  | Direction : Direction.t t
+
+let separator (type a) : a t -> string = function
+  | Should_I ->
+      " "
+  | Bit ->
+      ""
+  | Digit ->
+      ""
+  | Alphabetic ->
+      ""
+  | Lat_long ->
+      ", "
+  | Direction ->
+      " "
 
 let generator (type a) : a t -> a Generator.t = function
   | Bit ->
@@ -17,6 +32,8 @@ let generator (type a) : a t -> a Generator.t = function
       Generator.alphabetic
   | Should_I ->
       Generator.(map bit ~f:(fun b -> if b then `Yes else `No))
+  | Direction ->
+      Generator.(map bit ~f:(fun b -> if b then Direction.Left else Right))
   | Lat_long ->
       Generator.(
         map
@@ -34,11 +51,9 @@ let to_string (type a) : a t -> a -> string = function
       Char.to_string
   | Should_I -> (
       function `Yes -> "yes" | `No -> "no" )
+  | Direction ->
+      Direction.to_string
   | Lat_long ->
-      fun {latitude= lat, lat_dir; longitude= long, long_dir} ->
-        sprintf "%f° %c %f° %c" lat
-          (match lat_dir with `N -> 'N' | `S -> 'S')
-          long
-          (match long_dir with `E -> 'E' | `W -> 'W')
+      Lat_long.to_string
 
 type e = T : _ t -> e

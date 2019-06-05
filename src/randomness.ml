@@ -1,5 +1,10 @@
 open Core_kernel
 
+let blake2s s =
+  let open Digestif in
+  let h = blake2s 32 in
+  to_raw_string h (digest_string h s)
+
 module Seed = struct
   type t = string
 
@@ -15,17 +20,16 @@ module Seed = struct
         go (bytes_read + r)
     in
     go 0 ; In_channel.close c ; Bytes.to_string buf
+
+  let of_string = blake2s
 end
 
 let stream =
-  let open Digestif in
-  let h = blake2s 32 in
   let split_in_two s =
     let n = String.length s in
     let k = String.length s / 2 in
     (String.sub s ~pos:0 ~len:k, String.sub s ~pos:k ~len:(n - k))
   in
-  let blake2s s = to_raw_string h (digest_string h s) in
   let bits s =
     Sequence.init (String.length s) ~f:(fun i -> s.[i])
     |> Sequence.concat_map ~f:(fun c ->
