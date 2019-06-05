@@ -50,10 +50,12 @@ let run ?seed t =
     | Some (T k) ->
         let gen = Kind.generator k in
         let sep = Kind.separator k in
+        let i = ref 0 in
         Sequence.take Generator.(sample ~seed (sequence gen)) quantity
         |> Sequence.iter ~f:(fun t ->
                print_string (Kind.to_string k t) ;
-               print_string sep ) ;
+               incr i ;
+               if !i < quantity then print_string sep ) ;
         printf "\n" )
 
 let bail_with fmt = ksprintf (fun s -> print_endline s ; exit 1) fmt
